@@ -1,5 +1,7 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Created with IntelliJ IDEA.
@@ -21,22 +23,22 @@ public class MyRunnable implements Runnable {
     @Override
     public void run() {
 
-        System.out.println("inside thread: "+ Thread.currentThread().getName());
+        System.out.println("inside thread: " + Thread.currentThread().getName());
         long sum = 0;
         for (long i = 0; i < countUntil; i++) {
             sum = sum + i;
 
         }
         System.out.println(sum);
-
-
     }
+
 
     public static void main(String[] args) {
         List<Thread> thList = new ArrayList<Thread>();
-        MyRunnable r = new MyRunnable(10);
+        final int nThreads = 10;
+        MyRunnable r = new MyRunnable(nThreads);
         Thread th;
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < nThreads; i++) {
             th = new Thread(r);
             th.setName("worker threads " + i);
             th.start();
@@ -52,6 +54,20 @@ public class MyRunnable implements Runnable {
                 }
             }
         } while (running > 0);
+
+
+        // Using executor interface to run the threads
+        //creating a fixed thread pool size
+        //Added runnable workers to the queue. Each worker would run in the thread pool
+        ExecutorService exService = Executors.newFixedThreadPool(1);
+        for (int i = 0; i < nThreads; i++) {
+            exService.execute(r);
+        }
+        exService.shutdown();
+
+        while (exService.isTerminated()) {
+            System.out.println("Waiting for executor service to stop ");
+        }
 
 
     }
